@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ЕМИАС · Рабочее место врача — Электронная медицинская карта</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ---------- все стили (как в предыдущей версии) ---------- */
+        :root {
+            --primary-teal: #1BB3B3;
+            --primary-teal-dark: #159a9a;
+            --accent-orange: #FF6A3D;
+            --accent-orange-light: #FFF2EE;
+            --ai-purple: #8B5CF6;
+            --ai-purple-light: #F5F3FF;
+            --ai-blue: #3B82F6;
+            --ai-blue-light: #EFF6FF;
+            --text-dark: #2C3E50;
+            --text-medium: #5A6C7D;
+            --text-light: #8A9BAD;
+            --white: #FFFFFF;
+            --gray-light: #F8FAFC;
+            --gray-border: #E2E8F0;
+            --success-green: #10B981;
+            --warning-yellow: #F59E0B;
+            --danger-red: #EF4444;
+            --info-blue: #3B82F6;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --transition: all 0.2s ease;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', 'Inter', Roboto, sans-serif;
+            background-color: var(--gray-light);
+            color: var(--text-dark);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+        .top-bar {
+            height: 60px;
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .top-bar-left { display: flex; align-items: center; gap: 14px; }
+        .app-logo {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--primary-teal) 0%, var(--primary-teal-dark) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .app-title { font-weight: 700; color: var(--text-dark); font-size: 18px; }
+        .app-subtitle { font-size: 13px; color: var(--text-light); font-weight: normal; }
+        .top-bar-right { display: flex; align-items: center; gap: 20px; }
+        .user-info { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-medium); }
+        .user-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-teal) 0%, var(--info-blue) 100%);
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-weight: 600; font-size: 13px;
+        }
+        .layout { display: flex; height: calc(100vh - 60px); }
+        .main-nav {
+            width: 220px;
+            background: var(--white);
+            border-right: 1px solid var(--gray-border);
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+        }
+        .main-nav-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-light);
+            margin: 12px 8px 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .main-nav-item {
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            color: var(--text-medium);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+        }
+        .main-nav-item i { width: 20px; text-align: center; font-size: 16px; color: var(--text-light); }
+        .main-nav-item.active {
+            background: linear-gradient(90deg, rgba(27,179,179,0.1) 0%, rgba(27,179,179,0.05) 100%);
+            color: var(--primary-teal);
+            font-weight: 600;
+            border-left: 4px solid var(--primary-teal);
+        }
+        .main-nav-item.active i { color: var(--primary-teal); }
+        .main-nav-item:hover:not(.active) { background-color: rgba(0,0,0,0.03); color: var(--text-dark); }
+        .content {
+            flex: 1;
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+            overflow: hidden;
+        }
+        .left-pane {
+            width: 360px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+        }
+        .card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-border);
+            transition: var(--transition);
+        }
+        .card-header {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-dark);
+        }
+        .btn-icon {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: var(--primary-teal);
+            transition: all 0.2s;
+            padding: 4px 8px;
+            border-radius: 20px;
+        }
+        .btn-icon:hover {
+            background: rgba(27,179,179,0.1);
+        }
+        .patient-name {
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .patient-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .patient-meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .patient-meta-label {
+            font-size: 11px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .patient-meta-value {
+            font-size: 13px;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .chip-active { background: linear-gradient(135deg, var(--success-green) 0%, #0DA67A 100%); color: white; }
+        .chip-info { background: linear-gradient(135deg, var(--info-blue) 0%, #2B6FEF 100%); color: white; }
+        .chip-warning { background: linear-gradient(135deg, var(--warning-yellow) 0%, #E58A0B 100%); color: white; }
+        .diagnosis-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .diagnosis-item {
+            padding: 14px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            border: 1px solid var(--gray-border);
+            transition: var(--transition);
+        }
+        .diagnosis-item.active {
+            background: linear-gradient(90deg, rgba(27,179,179,0.08) 0%, rgba(27,179,179,0.04) 100%);
+            border-color: var(--primary-teal);
+            border-left: 5px solid var(--primary-teal);
+        }
+        .diagnosis-title { font-size: 14px; font-weight: 600; color: var(--text-dark); line-height: 1.4; }
+        .diagnosis-code {
+            font-size: 12px;
+            color: var(--primary-teal);
+            font-weight: 600;
+            background-color: rgba(27,179,179,0.08);
+            padding: 2px 8px;
+            border-radius: 12px;
+            align-self: flex-start;
+        }
+        .diagnosis-status {
+            font-size: 12px;
+            color: var(--text-medium);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 2px;
+        }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .status-dot-green { background-color: var(--success-green); }
+        .status-dot-yellow { background-color: var(--warning-yellow); }
+        .status-dot-red { background-color: var(--danger-red); }
+        .progress-bar { height: 8px; background-color: var(--gray-border); border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary-teal) 0%, var(--success-green) 100%); border-radius: 4px; }
+        .right-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+            min-width: 0;
+        }
+        .diagnosis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--gray-border);
+        }
+        .diagnosis-header-left {
+            flex: 1;
+        }
+        .diagnosis-header-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.3;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .diagnosis-header-meta { font-size: 13px; color: var(--text-light); margin-top: 4px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .diagnosis-header-right { text-align: right; font-size: 12px; color: var(--text-light); display: flex; flex-direction: column; gap: 4px; }
+        .mkb-clarification {
+            margin-bottom: 20px;
+            padding: 16px;
+            background: var(--gray-light);
+            border-radius: var(--radius-lg);
+            border-left: 4px solid var(--primary-teal);
+        }
+        .mkb-clarification label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+        .mkb-select-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--gray-border);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+        }
+        .inner-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray-border);
+            margin-top: 8px;
+            overflow-x: auto;
+        }
+        .inner-tab {
+            padding: 12px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--text-medium);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+        .inner-tab.active {
+            color: var(--primary-teal);
+            border-bottom-color: var(--primary-teal);
+            font-weight: 600;
+            background-color: rgba(27,179,179,0.03);
+        }
+        .inner-section {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .inner-section.hidden { display: none; }
+        .journey-map {
+            position: relative;
+            padding-left: 40px;
+        }
+        .journey-map::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--success-green) 0%, var(--success-green) 30%, var(--warning-yellow) 30%, var(--warning-yellow) 60%, var(--gray-border) 60%, var(--gray-border) 100%);
+            border-radius: 1px;
+        }
+        .journey-step {
+            position: relative;
+            margin-bottom: 24px;
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--gray-border);
+            overflow: hidden;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+        .journey-step.completed { border-left: 4px solid var(--success-green); }
+        .journey-step.in-progress { border-left: 4px solid var(--warning-yellow); }
+        .journey-step.pending { border-left: 4px solid var(--gray-border); }
+        .journey-step.highlight { border-left: 4px solid var(--accent-orange); }
+        .journey-step-icon {
+            position: absolute;
+            left: -48px;
+            top: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            z-index: 2;
+        }
+        .journey-step.completed .journey-step-icon { background: linear-gradient(135deg, var(--success-green) 0%, #0DA67A 100%); }
+        .journey-step.in-progress .journey-step-icon { background: linear-gradient(135deg, var(--warning-yellow) 0%, #E58A0B 100%); }
+        .journey-step.pending .journey-step-icon { background: linear-gradient(135deg, var(--gray-border) 0%, #CBD5E1 100%); }
+        .journey-step-header {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            cursor: pointer;
+            border-bottom: 1px solid var(--gray-border);
+            background-color: var(--gray-light);
+        }
+        .journey-step-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-udd { background-color: rgba(27,179,179,0.1); color: var(--primary-teal); }
+        .badge-key { background-color: rgba(255,106,61,0.1); color: var(--accent-orange); }
+        .badge-ai { background-color: rgba(139,92,246,0.1); color: var(--ai-purple); }
+        .ai-form-container {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            width: 100%;
+            overflow-x: auto;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px 24px;
+            margin-bottom: 20px;
+        }
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .form-field label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-medium);
+        }
+        .form-field input, .form-field select {
+            padding: 8px 10px;
+            border: 1px solid var(--gray-border);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            background: white;
+        }
+        .form-field.checkbox {
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-field.checkbox label { font-weight: normal; }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-orange) 0%, #FF5722 100%);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn-secondary {
+            background: var(--gray-light);
+            border: 1px solid var(--gray-border);
+            border-radius: var(--radius-md);
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-outline {
+            background: white;
+            border: 1px solid var(--primary-teal);
+            color: var(--primary-teal);
+            border-radius: var(--radius-md);
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-outline:hover {
+            background: rgba(27,179,179,0.1);
+        }
+        .ai-recommendation {
+            background: linear-gradient(135deg, var(--ai-purple-light) 0%, var(--ai-blue-light) 100%);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-top: 20px;
+            border-left: 4px solid var(--ai-purple);
+        }
+        .red-flags {
+            background-color: #ffcccc;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .info-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            border-left: 4px solid var(--primary-teal);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 16px;
+        }
+        .info-card-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+        .info-card-content {
+            color: var(--text-medium);
+            font-size: 13px;
+        }
+        hr {
+            margin: 16px 0;
+            border: none;
+            border-top: 1px solid var(--gray-border);
+        }
+        @media (max-width: 1200px) {
+            .layout { flex-direction: column; height: auto; }
+            .main-nav { width: 100%; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--gray-border); }
+            .main-nav-title { display: none; }
+            .content { flex-direction: column; }
+            .left-pane { width: 100%; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <div class="app-logo">Е</div>
+            <div><div class="app-title">Единая медицинская информационно-аналитическая система</div><div class="app-subtitle">Рабочее место врача · Электронная медицинская карта</div></div>
+        </div>
+        <div class="top-bar-right">
+            <div class="user-info"><div class="user-avatar">АП</div><div><div style="font-weight: 600;">Петрова Анна Александровна</div><div style="font-size: 12px;">Врач-терапевт · Кабинет 203</div></div></div>
+        </div>
+    </div>
+
+    <div class="layout">
+        <div class="main-nav">
+            <div class="main-nav-item"><i class="fas fa-calendar-alt"></i><span>Расписание</span></div>
+            <div class="main-nav-item active"><i class="fas fa-clipboard-list"></i><span>Медкарта</span></div>
+            <div class="main-nav-item"><i class="fas fa-flask"></i><span>Анализы</span></div>
+            <div class="main-nav-item"><i class="fas fa-prescription-bottle-alt"></i><span>Назначения</span></div>
+            <div class="main-nav-item"><i class="fas fa-robot"></i><span>AI-ассистент</span></div>
+            <div class="main-nav-title">Справочники</div>
+            <div class="main-nav-item"><i class="fas fa-book-medical"></i><span>Клинические рекомендации</span></div>
+            <div class="main-nav-item"><i class="fas fa-pills"></i><span>Лекарственные средства</span></div>
+        </div>
+
+        <div class="content">
+            <!-- Левая панель -->
+            <div class="left-pane">
+                <div class="card">
+                    <div class="card-header"><span>Карточка пациента</span><span class="chip chip-active">АКТИВНЫЙ ПРИЁМ</span></div>
+                    <div class="patient-name">Иванов Иван Иванович<span style="font-size:14px; color:var(--text-light);">47 лет</span></div>
+                    <div class="patient-meta">
+                        <div class="patient-meta-item"><span class="patient-meta-label">СНИЛС</span><span class="patient-meta-value">123-456-789 00</span></div>
+                        <div class="patient-meta-item"><span class="patient-meta-label">Полис ОМС</span><span class="patient-meta-value">4509 123456</span></div>
+                        <div class="patient-meta-item"><span class="patient-meta-label">Участок</span><span class="patient-meta-value">№ 112</span></div>
+                        <div class="patient-meta-item"><span class="patient-meta-label">Терапевт</span><span class="patient-meta-value">Петрова А.А.</span></div>
+                    </div>
+                    <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+                        <span class="chip chip-info">Группа здоровья: II</span>
+                        <span class="chip chip-warning">Инвалидность: III группа</span>
+                        <select id="careLevelSelect" class="chip" style="background:var(--gray-light); color:var(--text-dark);">
+                            <option value="primary">Первичная помощь</option>
+                            <option value="specialized">Специализированная помощь</option>
+                        </select>
+                        <select id="patientGroupSelect" class="chip" style="background:var(--gray-light); color:var(--text-dark);">
+                            <option value="adult">Взрослый</option>
+                            <option value="child">Ребёнок</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span>Диагнозы пациента</span>
+                        <span style="font-size:12px;">Текущие и хронические</span>
+                        <button id="addDiagnosisBtn" class="btn-icon" title="Добавить диагноз"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <div class="diagnosis-list" id="diagnosisList"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><span>Прогресс лечения</span></div>
+                    <div style="padding:8px 0;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px; font-weight:600;"><span>Общий прогресс лечения</span><span>65%</span></div>
+                        <div class="progress-bar"><div class="progress-fill" style="width:65%;"></div></div>
+                        <div style="margin-top:16px; font-size:12px; color:var(--text-light);">
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;"><div style="width:10px; height:10px; border-radius:50%; background:var(--success-green);"></div><span>Завершено: 3 этапа</span></div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;"><div style="width:10px; height:10px; border-radius:50%; background:var(--warning-yellow);"></div><span>В процессе: 2 этапа</span></div>
+                            <div style="display:flex; align-items:center; gap:8px;"><div style="width:10px; height:10px; border-radius:50%; background:var(--gray-border);"></div><span>Ожидает: 2 этапа</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая панель -->
+            <div class="right-pane">
+                <div class="card">
+                    <div class="diagnosis-header">
+                        <div class="diagnosis-header-left">
+                            <div class="diagnosis-header-title" id="diagnosis-title">
+                                <span id="diagnosisNameSpan">Бронхиальная астма, персистирующее течение, среднетяжелая</span>
+                                <button id="editDiagnosisBtn" class="btn-icon" title="Редактировать диагноз"><i class="fas fa-pencil-alt"></i></button>
+                            </div>
+                            <div class="diagnosis-header-meta" id="diagnosis-meta"><span>Код по МКБ-10: <strong>J45.9</strong></span><span>Основной диагноз</span><span>Стадия: среднетяжелая</span></div>
+                        </div>
+                        <div class="diagnosis-header-right"><div>Дата постановки: <strong>10.03.2023</strong></div><div>Последнее обновление: <strong>12.12.2025</strong></div><div>Врач: <strong>Петрова А.А.</strong></div></div>
+                    </div>
+
+                    <!-- Блок уточнения/редактирования диагноза -->
+                    <div id="mkbClarificationBlock" class="mkb-clarification" style="display: none;">
+                        <label for="mkbSelectInput">Уточнение / изменение диагноза по МКБ-10</label>
+                        <input list="mkbOptions" id="mkbSelectInput" class="mkb-select-input" placeholder="Начните вводить код или название..." autocomplete="off">
+                        <datalist id="mkbOptions"></datalist>
+                        <div style="display: flex; gap: 12px; margin-top: 16px;">
+                            <button id="confirmMkbBtn" class="btn-primary" disabled>Сохранить диагноз</button>
+                            <button id="cancelMkbBtn" class="btn-secondary">Отмена</button>
+                        </div>
+                    </div>
+
+                    <div class="inner-tabs">
+                        <div class="inner-tab active" data-inner="diag"><i class="fas fa-map-signs"></i><span>Дорожная карта</span></div>
+                        <div class="inner-tab" data-inner="treat"><i class="fas fa-pills"></i><span>Лечение</span></div>
+                        <div class="inner-tab" data-inner="monitoring"><i class="fas fa-chart-line"></i><span>Мониторинг</span></div>
+                        <div class="inner-tab" data-inner="docs"><i class="fas fa-file-medical"></i><span>Документы</span></div>
+                        <div class="inner-tab" data-inner="ai"><i class="fas fa-robot"></i><span>AI-подсказки</span></div>
+                    </div>
+
+                    <!-- Дорожная карта -->
+                    <div class="inner-section" id="inner-diag">
+                        <div class="info-card"><div class="info-card-title">Загрузка плана...</div><div class="info-card-content">Пожалуйста, подождите</div></div>
+                    </div>
+
+                    <!-- Лечение (AI-анализ + поиск аналогов) -->
+                    <div class="inner-section hidden" id="inner-treat">
+                        <!-- Блок AI-анализа -->
+                        <div class="ai-form-container">
+                            <h3 style="margin-bottom: 16px;"><i class="fas fa-microscope"></i> AI-анализ для кишечных инфекций</h3>
+                            <div class="form-grid">
+                                <div class="form-field"><label>Возраст (лет)</label><input type="number" id="age" value="45" step="1"></div>
+                                <div class="form-field"><label>Пол</label><select id="gender"><option value="М">М</option><option value="Ж">Ж</option></select></div>
+                                <div class="form-field checkbox"><input type="checkbox" id="is_child"><label>Ребёнок</label></div>
+                                <div class="form-field checkbox"><input type="checkbox" id="is_elderly"><label>Пожилой</label></div>
+                                <div class="form-field checkbox"><input type="checkbox" id="is_pregnant"><label>Беременность</label></div>
+                                <div class="form-field checkbox"><input type="checkbox" id="comorbidities" checked><label>Сопутствующие заболевания</label></div>
+                                <div class="form-field checkbox"><input type="checkbox" id="recent_antibiotics"><label>Недавние антибиотики</label></div>
+                                <div class="form-field"><label>Длительность симптомов (дни)</label><input type="number" id="symptoms_onset_days" value="2.5" step="0.1"></div>
+                                <div class="form-field"><label>Температура (°C)</label><input type="number" id="fever_temp" value="38.7" step="0.1"></div>
+                                <div class="form-field"><label>Диарея (эпизодов/сутки)</label><input type="number" id="diarrhea_episodes" value="8"></div>
+                                <div class="form-field"><label>Рвота (эпизодов/сутки)</label><input type="number" id="vomiting_episodes" value="3"></div>
+                                <div class="form-field"><label>Боль в животе (0-3)</label><input type="number" id="abdominal_pain" value="2" min="0" max="3"></div>
+                                <div class="form-field checkbox"><input type="checkbox" id="bloody_stool" checked><label>Кровь в стуле</label></div>
+                                <div class="form-field checkbox"><input type="checkbox" id="mucus_in_stool"><label>Слизь в стуле</label></div>
+                                <div class="form-field"><label>Обезвоживание</label><select id="dehydration"><option value="none">none</option><option value="mild">mild</option><option value="moderate" selected>moderate</option><option value="severe">severe</option></select></div>
+                                <div class="form-field"><label>Тяжесть</label><select id="severity"><option value="mild">mild</option><option value="moderate" selected>moderate</option><option value="severe">severe</option></select></div>
+                                <div class="form-field"><label>Лейкоциты (10^9/л)</label><input type="number" id="wbc" value="14.2" step="0.1"></div>
+                                <div class="form-field"><label>СРБ (мг/л)</label><input type="number" id="crp" value="35.4" step="0.1"></div>
+                                <div class="form-field"><label>Натрий (ммоль/л)</label><input type="number" id="na_mmol" value="136.0" step="0.1"></div>
+                                <div class="form-field"><label>Калий (ммоль/л)</label><input type="number" id="k_mmol" value="3.9" step="0.1"></div>
+                                <div class="form-field checkbox"><input type="checkbox" id="high_wbc"><label>Повышенные лейкоциты</label></div>
+                                <div class="form-field checkbox"><input type="checkbox" id="high_crp" checked><label>Повышенный СРБ</label></div>
+                            </div>
+                            <button id="aiAnalysisBtn" class="btn-primary"><i class="fas fa-robot"></i> Получить AI-рекомендацию</button>
+                            <div id="aiResult" style="margin-top: 20px;"></div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Блок поиска аналогов лекарств -->
+                        <div class="ai-form-container">
+                            <h3 style="margin-bottom: 16px;"><i class="fas fa-pills"></i> Поиск аналогов лекарственных средств</h3>
+                            <div class="form-grid" style="grid-template-columns: 1fr auto;">
+                                <div class="form-field">
+                                    <label>Торговое наименование препарата</label>
+                                    <input type="text" id="analogQuery" placeholder="Например: Нимесулид, Цефтриаксон" value="">
+                                </div>
+                                <div class="form-field" style="justify-content: flex-end;">
+                                    <button id="searchAnalogsBtn" class="btn-primary" style="margin-top: 20px;"><i class="fas fa-search"></i> Найти аналоги</button>
+                                </div>
+                            </div>
+                            <div id="analogFormsSelection" style="display: none; margin-top: 16px; padding: 12px; background: var(--gray-light); border-radius: var(--radius-md);">
+                                <label>Выберите форму и дозировку:</label>
+                                <select id="analogFormSelect" class="mkb-select-input" style="margin-top: 8px;"></select>
+                                <button id="confirmAnalogFormBtn" class="btn-secondary" style="margin-top: 12px;">Показать аналоги</button>
+                            </div>
+                            <div id="analogResults" style="margin-top: 20px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Мониторинг -->
+                    <div class="inner-section hidden" id="inner-monitoring">
+                        <div class="info-card"><div class="info-card-title">Мониторинг</div><div class="info-card-content">Графики и динамика ключевых показателей.</div></div>
+                    </div>
+
+                    <!-- Документы -->
+                    <div class="inner-section hidden" id="inner-docs">
+                        <div class="info-card"><div class="info-card-title">Документы</div><div class="info-card-content">Все медицинские документы, связанные с данным диагнозом.</div></div>
+                    </div>
+
+                    <!-- AI-подсказки (RAG) -->
+                    <div class="inner-section hidden" id="inner-ai">
+                        <div class="ai-form-container">
+                            <div class="form-field" style="margin-bottom: 16px;">
+                                <label>Ваш вопрос по клиническим рекомендациям</label>
+                                <textarea id="ragQuestion" rows="3" class="mkb-select-input" placeholder="Например: Какие симптомы характерны для брюшного тифа?"></textarea>
+                            </div>
+                            <div class="form-field" style="margin-bottom: 16px;">
+                                <label>Возрастная категория пациента</label>
+                                <select id="ragAgeGroup">
+                                    <option value="Взрослые">Взрослые</option>
+                                    <option value="Дети">Дети</option>
+                                    <option value="Взрослые, дети">Все возрасты</option>
+                                </select>
+                            </div>
+                            <button id="askRagBtn" class="btn-primary"><i class="fas fa-comment-medical"></i> Получить ответ</button>
+                            <div id="ragAnswer" style="margin-top: 20px; background: var(--gray-light); padding: 16px; border-radius: var(--radius-md); white-space: pre-wrap;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --------------------------------------------------------------
+        // Работа с диагнозами, дорожной картой и т.д. (как в предыдущей версии)
+        // --------------------------------------------------------------
+        let patientDiagnoses = [];
+        let activeDiagnosisId = null;
+        let mkbList = [];
+        let selectedMkbCode = null;
+        let selectedMkbName = null;
+        let editingExistingDiagnosis = false;
+
+        const diagnosisListDiv = document.getElementById('diagnosisList');
+        const addDiagnosisBtn = document.getElementById('addDiagnosisBtn');
+        const mkbClarificationBlock = document.getElementById('mkbClarificationBlock');
+        const mkbSelectInput = document.getElementById('mkbSelectInput');
+        const mkbOptionsDatalist = document.getElementById('mkbOptions');
+        const confirmMkbBtn = document.getElementById('confirmMkbBtn');
+        const cancelMkbBtn = document.getElementById('cancelMkbBtn');
+        const editDiagnosisBtn = document.getElementById('editDiagnosisBtn');
+        const diagnosisNameSpan = document.getElementById('diagnosisNameSpan');
+        const diagnosisMetaSpan = document.getElementById('diagnosis-meta');
+        const careLevelSelect = document.getElementById('careLevelSelect');
+        const patientGroupSelect = document.getElementById('patientGroupSelect');
+
+        async function loadMkbList() {
+            try {
+                const res = await fetch('/api/mkb');
+                const data = await res.json();
+                mkbList = data;
+                mkbOptionsDatalist.innerHTML = '';
+                mkbList.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = `${item.Код} — ${item.Наименование}`;
+                    mkbOptionsDatalist.appendChild(option);
+                });
+                console.log(`Загружено ${mkbList.length} записей МКБ`);
+            } catch (err) {
+                console.error('Ошибка загрузки МКБ', err);
+                mkbList = [];
+            }
+        }
+
+        function initDiagnoses() {
+            patientDiagnoses = [
+                { id: 'asthma', code: 'J45.9', name: 'Бронхиальная астма, персистирующее течение, среднетяжелая', status: 'Основной диагноз · Частичный контроль', isNew: false },
+                { id: 'hypertension', code: 'I10', name: 'Гипертоническая болезнь II стадии, риск 3 (высокий)', status: 'Сопутствующий · Целевой АД не достигнут', isNew: false },
+                { id: 'diabetes', code: 'E11', name: 'Сахарный диабет 2 типа, среднетяжёлое течение', status: 'Сопутствующий · HbA1c 7,2%', isNew: false }
+            ];
+            activeDiagnosisId = patientDiagnoses[0].id;
+            renderDiagnosisList();
+            updateRightPanelForActiveDiagnosis();
+        }
+
+        function renderDiagnosisList() {
+            diagnosisListDiv.innerHTML = '';
+            patientDiagnoses.forEach(diag => {
+                const div = document.createElement('div');
+                div.className = `diagnosis-item ${activeDiagnosisId === diag.id ? 'active' : ''}`;
+                div.setAttribute('data-diagnosis-id', diag.id);
+                div.innerHTML = `
+                    <span class="diagnosis-code">${diag.code}</span>
+                    <span class="diagnosis-title">${escapeHtml(diag.name)}</span>
+                    <div class="diagnosis-status"><span class="status-dot status-dot-yellow"></span><span>${escapeHtml(diag.status)}</span></div>
+                `;
+                div.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    activeDiagnosisId = diag.id;
+                    renderDiagnosisList();
+                    updateRightPanelForActiveDiagnosis();
+                    loadTreatmentPlan();
+                });
+                diagnosisListDiv.appendChild(div);
+            });
+        }
+
+        function updateRightPanelForActiveDiagnosis() {
+            const activeDiag = patientDiagnoses.find(d => d.id === activeDiagnosisId);
+            if (!activeDiag) return;
+            diagnosisNameSpan.textContent = activeDiag.name;
+            diagnosisMetaSpan.innerHTML = `<span>Код по МКБ-10: <strong>${activeDiag.code}</strong></span><span>${activeDiag.status}</span>`;
+            if (activeDiag.isNew === true) {
+                editingExistingDiagnosis = false;
+                showMkbClarification();
+            } else {
+                mkbClarificationBlock.style.display = 'none';
+                editingExistingDiagnosis = false;
+            }
+        }
+
+        function showMkbClarification() {
+            mkbClarificationBlock.style.display = 'block';
+            mkbSelectInput.value = '';
+            selectedMkbCode = null;
+            selectedMkbName = null;
+            confirmMkbBtn.disabled = true;
+        }
+
+        function addNewDiagnosis() {
+            const newId = 'new_' + Date.now();
+            const newDiagnosis = {
+                id: newId,
+                code: '???',
+                name: 'Новый неуточненный диагноз',
+                status: 'Неуточненный · ожидает уточнения',
+                isNew: true
+            };
+            patientDiagnoses.push(newDiagnosis);
+            activeDiagnosisId = newId;
+            renderDiagnosisList();
+            updateRightPanelForActiveDiagnosis();
+        }
+
+        function startEditingDiagnosis() {
+            const activeDiag = patientDiagnoses.find(d => d.id === activeDiagnosisId);
+            if (!activeDiag) return;
+            editingExistingDiagnosis = true;
+            showMkbClarification();
+        }
+
+        mkbSelectInput.addEventListener('change', (e) => {
+            const selectedValue = e.target.value;
+            const found = mkbList.find(item => `${item.Код} — ${item.Наименование}` === selectedValue);
+            if (found) {
+                selectedMkbCode = found.Код;
+                selectedMkbName = found.Наименование;
+                confirmMkbBtn.disabled = false;
+            } else {
+                selectedMkbCode = null;
+                selectedMkbName = null;
+                confirmMkbBtn.disabled = true;
+            }
+        });
+
+        function saveMkbToActiveDiagnosis() {
+            if (!selectedMkbCode || !selectedMkbName) return;
+            const activeDiag = patientDiagnoses.find(d => d.id === activeDiagnosisId);
+            if (!activeDiag) return;
+            if (editingExistingDiagnosis) {
+                activeDiag.code = selectedMkbCode;
+                activeDiag.name = selectedMkbName;
+                activeDiag.status = 'Уточнён/изменён по МКБ-10';
+                activeDiag.isNew = false;
+            } else if (activeDiag.isNew) {
+                activeDiag.code = selectedMkbCode;
+                activeDiag.name = selectedMkbName;
+                activeDiag.status = 'Уточнён по МКБ-10';
+                activeDiag.isNew = false;
+            }
+            renderDiagnosisList();
+            updateRightPanelForActiveDiagnosis();
+            mkbClarificationBlock.style.display = 'none';
+            editingExistingDiagnosis = false;
+            selectedMkbCode = null;
+            selectedMkbName = null;
+            loadTreatmentPlan();
+        }
+
+        function cancelMkbClarification() {
+            if (editingExistingDiagnosis) {
+                mkbClarificationBlock.style.display = 'none';
+                editingExistingDiagnosis = false;
+            } else {
+                const activeDiag = patientDiagnoses.find(d => d.id === activeDiagnosisId);
+                if (activeDiag && activeDiag.isNew) {
+                    const idx = patientDiagnoses.findIndex(d => d.id === activeDiagnosisId);
+                    if (idx !== -1) patientDiagnoses.splice(idx, 1);
+                    if (patientDiagnoses.length) {
+                        activeDiagnosisId = patientDiagnoses[0].id;
+                    } else {
+                        activeDiagnosisId = null;
+                    }
+                    renderDiagnosisList();
+                    if (activeDiagnosisId) updateRightPanelForActiveDiagnosis();
+                    else mkbClarificationBlock.style.display = 'none';
+                } else {
+                    mkbClarificationBlock.style.display = 'none';
+                }
+            }
+            selectedMkbCode = null;
+            selectedMkbName = null;
+        }
+
+        addDiagnosisBtn.addEventListener('click', addNewDiagnosis);
+        editDiagnosisBtn.addEventListener('click', startEditingDiagnosis);
+        confirmMkbBtn.addEventListener('click', saveMkbToActiveDiagnosis);
+        cancelMkbBtn.addEventListener('click', cancelMkbClarification);
+
+        // --------------------------------------------------------------
+        // Дорожная карта
+        // --------------------------------------------------------------
+        async function loadTreatmentPlan() {
+            const activeDiag = patientDiagnoses.find(d => d.id === activeDiagnosisId);
+            if (!activeDiag || !activeDiag.code || activeDiag.code === '???') {
+                document.getElementById('inner-diag').innerHTML = `
+                    <div class="info-card">
+                        <div class="info-card-title">⚠️ Не выбран диагноз</div>
+                        <div class="info-card-content">Сначала уточните диагноз по МКБ-10 (нажмите на карандаш или добавьте диагноз).</div>
+                    </div>`;
+                return;
+            }
+            const careLevel = careLevelSelect.value;
+            const patientGroup = patientGroupSelect.value;
+            try {
+                const response = await fetch('/api/treatment_plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        icd_code: activeDiag.code,
+                        care_level: careLevel,
+                        patient_group: patientGroup,
+                        patient_data: {}
+                    })
+                });
+                if (!response.ok) throw new Error('Ошибка загрузки плана');
+                const plan = await response.json();
+                renderTreatmentPlan(plan);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('inner-diag').innerHTML = `
+                    <div class="info-card" style="border-left-color: #EF4444;">
+                        <div class="info-card-title">❌ Ошибка</div>
+                        <div class="info-card-content">${escapeHtml(err.message)}</div>
+                    </div>`;
+            }
+        }
+
+        function renderTreatmentPlan(plan) {
+            let html = `<div class="journey-map">`;
+            const categories = [
+                { key: 'diagnostic', title: 'Диагностические мероприятия', icon: 'fa-stethoscope' },
+                { key: 'therapeutic', title: 'Лечение', icon: 'fa-prescription-bottle' },
+                { key: 'consultation', title: 'Консультации', icon: 'fa-user-md' },
+                { key: 'monitoring', title: 'Мониторинг', icon: 'fa-chart-line' },
+                { key: 'other', title: 'Прочие мероприятия', icon: 'fa-ellipsis-h' }
+            ];
+            let hasAny = false;
+            for (let cat of categories) {
+                const items = plan[cat.key];
+                if (!items || items.length === 0) continue;
+                hasAny = true;
+                html += `<div style="margin-bottom: 20px;"><h3 style="font-size: 16px; margin-bottom: 12px;"><i class="fas ${cat.icon}"></i> ${cat.title}</h3>`;
+                items.forEach(item => {
+                    html += `<div class="journey-step completed" style="margin-bottom: 12px;">
+                                <div class="journey-step-icon"><i class="fas ${cat.icon}"></i></div>
+                                <div class="journey-step-header">
+                                    <div class="journey-step-main">
+                                        <div class="journey-step-title">${escapeHtml(item)}</div>
+                                    </div>
+                                </div>
+                            </div>`;
+                });
+                html += `</div>`;
+            }
+            if (!hasAny) {
+                html = `<div class="info-card"><div class="info-card-title">📋 Нет рекомендаций</div><div class="info-card-content">Для данного диагноза и выбранных параметров не найдено клинических критериев.</div></div>`;
+            } else {
+                html += `</div>`;
+            }
+            document.getElementById('inner-diag').innerHTML = html;
+        }
+
+        function isDiagTabActive() {
+            const activeTab = document.querySelector('.inner-tab.active');
+            return activeTab && activeTab.getAttribute('data-inner') === 'diag';
+        }
+
+        // --------------------------------------------------------------
+        // Переключение вкладок
+        // --------------------------------------------------------------
+        const innerTabs = document.querySelectorAll('.inner-tab');
+        const sections = {
+            diag: document.getElementById('inner-diag'),
+            treat: document.getElementById('inner-treat'),
+            monitoring: document.getElementById('inner-monitoring'),
+            docs: document.getElementById('inner-docs'),
+            ai: document.getElementById('inner-ai')
+        };
+        innerTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const key = tab.getAttribute('data-inner');
+                innerTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                Object.keys(sections).forEach(k => sections[k].classList.add('hidden'));
+                if (sections[key]) sections[key].classList.remove('hidden');
+                if (key === 'diag') loadTreatmentPlan();
+            });
+        });
+
+        // --------------------------------------------------------------
+        // AI-анализ (форма во вкладке "Лечение")
+        // --------------------------------------------------------------
+        let lastAiDiagnosis = null;
+        async function getAIPlan(patientData) {
+            const res = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(patientData),
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        }
+
+        function formatResult(data) {
+            lastAiDiagnosis = {
+                code: data.diagnosis.match(/\(([A-Z][0-9\.\-]+)\)/)?.[1] || data.diagnosis,
+                name: data.diagnosis
+            };
+            let html = `<div class="ai-recommendation">
+                <div class="flex-between" style="margin-bottom: 12px;">
+                    <div><i class="fas fa-robot"></i> <strong>Рекомендуемый план лечения</strong></div>
+                    <button id="applyAiDiagnosisBtn" class="btn-outline" style="width: auto; padding: 6px 12px;"><i class="fas fa-sync-alt"></i> Применить диагноз</button>
+                </div>
+                <div><p><strong>Предполагаемый диагноз:</strong> ${escapeHtml(data.diagnosis)}</p>
+                <p><strong>Предполагаемый возбудитель:</strong> ${escapeHtml(data.suspected_pathogen?.toUpperCase() || '')}</p><hr>
+                <p><strong>Госпитализация:</strong> ${data.hospitalization ? '✅ Да' : '❌ Нет'}</p>
+                <p><strong>Внутривенные инфузии:</strong> ${data.iv_fluids ? '✅ Да' : '❌ Нет'}</p>
+                <p><strong>Оральная регидратация:</strong> ${data.oral_rehydration ? '✅ Да' : '❌ Нет'}</p>
+                <p><strong>Антибиотики:</strong> ${data.antibiotics_needed ? '✅ Да' : '❌ Нет'}</p>`;
+            if (data.antibiotics_needed && data.recommended_antibiotics?.length) {
+                html += `<p><strong>Рекомендуемые антибиотики:</strong><ul>${data.recommended_antibiotics.map(ab => `<li>${escapeHtml(ab[0])}: ${escapeHtml(ab[1])}</li>`).join('')}</ul></p>`;
+            }
+            if (data.alternatives && Object.keys(data.alternatives).length) {
+                html += `<p><strong>💊 Альтернативы:</strong><ul>`;
+                for (const [drug, alts] of Object.entries(data.alternatives)) {
+                    html += `<li><strong>Вместо ${escapeHtml(drug)}:</strong> ${alts.map(a => `${escapeHtml(a.name)} (${escapeHtml(a.dose)})`).join(', ')}</li>`;
+                }
+                html += `</ul></p>`;
+            }
+            html += `<p><strong>Пробиотики:</strong> ${data.probiotics ? '✅ Да' : '❌ Нет'}</p>
+                     <p><strong>Противодиарейные:</strong> ${data.antidiarrheals ? '✅ Да' : '❌ Нет'}</p>`;
+            if (data.red_flags && data.red_flags.length) {
+                html += `<div class="red-flags"><strong>⚠️ Красные флаги</strong><ul>${data.red_flags.map(f => `<li>${escapeHtml(f.warning)}</li>`).join('')}<li>Балл: ${data.red_flags_score}</li>`;
+                if (data.red_flags_score >= 70) html += `<li>👉 ЭКСТРЕННАЯ ГОСПИТАЛИЗАЦИЯ</li>`;
+                else if (data.red_flags_score >= 40) html += `<li>👉 Рассмотреть госпитализацию</li>`;
+                else html += `<li>👉 Амбулаторно с наблюдением</li>`;
+                html += `</ul></div>`;
+            }
+            html += `<hr><p><em>${escapeHtml(data.reasoning || '')}</em></p></div>`;
+            return html;
+        }
+
+        function applyAiDiagnosisToCurrent() {
+            if (!lastAiDiagnosis) return;
+            const activeDiag = patientDiagnoses.find(d => d.id === activeDiagnosisId);
+            if (activeDiag) {
+                activeDiag.code = lastAiDiagnosis.code;
+                activeDiag.name = lastAiDiagnosis.name;
+                activeDiag.status = 'Уточнён по данным AI-анализа';
+                activeDiag.isNew = false;
+                renderDiagnosisList();
+                updateRightPanelForActiveDiagnosis();
+                mkbClarificationBlock.style.display = 'none';
+                editingExistingDiagnosis = false;
+                loadTreatmentPlan();
+            }
+        }
+
+        function collectData() {
+            return {
+                age: parseFloat(document.getElementById('age').value),
+                gender: document.getElementById('gender').value,
+                is_child: document.getElementById('is_child').checked ? 1 : 0,
+                is_elderly: document.getElementById('is_elderly').checked ? 1 : 0,
+                is_pregnant: document.getElementById('is_pregnant').checked ? 1 : 0,
+                comorbidities: document.getElementById('comorbidities').checked ? 1 : 0,
+                recent_antibiotics: document.getElementById('recent_antibiotics').checked ? 1 : 0,
+                symptoms_onset_days: parseFloat(document.getElementById('symptoms_onset_days').value),
+                fever_temp: parseFloat(document.getElementById('fever_temp').value),
+                diarrhea_episodes: parseInt(document.getElementById('diarrhea_episodes').value),
+                vomiting_episodes: parseInt(document.getElementById('vomiting_episodes').value),
+                abdominal_pain: parseInt(document.getElementById('abdominal_pain').value),
+                bloody_stool: document.getElementById('bloody_stool').checked ? 1 : 0,
+                mucus_in_stool: document.getElementById('mucus_in_stool').checked ? 1 : 0,
+                dehydration: document.getElementById('dehydration').value,
+                severity: document.getElementById('severity').value,
+                wbc: parseFloat(document.getElementById('wbc').value),
+                crp: parseFloat(document.getElementById('crp').value),
+                na_mmol: parseFloat(document.getElementById('na_mmol').value),
+                k_mmol: parseFloat(document.getElementById('k_mmol').value),
+                high_wbc: document.getElementById('high_wbc').checked ? 1 : 0,
+                high_crp: document.getElementById('high_crp').checked ? 1 : 0,
+                stool_pathogen: 'unknown'
+            };
+        }
+
+        document.getElementById('aiAnalysisBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('aiAnalysisBtn');
+            const resultDiv = document.getElementById('aiResult');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Загрузка...';
+            btn.disabled = true;
+            resultDiv.innerHTML = '<div class="ai-recommendation">⏳ Анализируем данные...</div>';
+            try {
+                const data = await getAIPlan(collectData());
+                resultDiv.innerHTML = formatResult(data);
+                const applyBtn = document.getElementById('applyAiDiagnosisBtn');
+                if (applyBtn) {
+                    const newApplyBtn = applyBtn.cloneNode(true);
+                    applyBtn.parentNode.replaceChild(newApplyBtn, applyBtn);
+                    newApplyBtn.addEventListener('click', applyAiDiagnosisToCurrent);
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<div class="info-card" style="border-left-color:#EF4444;"><div class="info-card-title">❌ Ошибка</div><div class="info-card-content">${escapeHtml(err.message)}<br>Проверьте сервер Flask (python app.py).</div></div>`;
+            } finally {
+                btn.innerHTML = orig;
+                btn.disabled = false;
+            }
+        });
+
+        // --------------------------------------------------------------
+        // Поиск аналогов лекарств
+        // --------------------------------------------------------------
+        let lastAnalogQuery = '';
+        let lastFormsDosages = [];
+
+        document.getElementById('searchAnalogsBtn').addEventListener('click', async () => {
+            const query = document.getElementById('analogQuery').value.trim();
+            if (!query) {
+                document.getElementById('analogResults').innerHTML = '<div class="info-card" style="border-left-color:#EF4444;">❌ Введите торговое наименование.</div>';
+                return;
+            }
+            lastAnalogQuery = query;
+            const selectionDiv = document.getElementById('analogFormsSelection');
+            const resultsDiv = document.getElementById('analogResults');
+            resultsDiv.innerHTML = '<div class="ai-recommendation">⏳ Поиск...</div>';
+            selectionDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/analogs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+                if (!response.ok) throw new Error('Ошибка сервера');
+                const data = await response.json();
+                if (data.status === 'need_selection') {
+                    lastFormsDosages = data.forms_dosages;
+                    const select = document.getElementById('analogFormSelect');
+                    select.innerHTML = '<option value="">-- Выберите --</option>';
+                    lastFormsDosages.forEach((item, idx) => {
+                        const option = document.createElement('option');
+                        option.value = idx;
+                        option.textContent = `${item.form} | ${item.dosage}`;
+                        select.appendChild(option);
+                    });
+                    selectionDiv.style.display = 'block';
+                    resultsDiv.innerHTML = '<div class="info-card">🔍 Уточните форму и дозировку для выбранного препарата.</div>';
+                } else if (data.status === 'ok') {
+                    displayAnalogResults(data.analogs);
+                    selectionDiv.style.display = 'none';
+                } else if (data.error) {
+                    resultsDiv.innerHTML = `<div class="info-card" style="border-left-color:#EF4444;">❌ ${escapeHtml(data.error)}</div>`;
+                } else {
+                    resultsDiv.innerHTML = `<div class="info-card" style="border-left-color:#EF4444;">❌ ${escapeHtml(data.message || 'Неизвестная ошибка')}</div>`;
+                }
+            } catch (err) {
+                resultsDiv.innerHTML = `<div class="info-card" style="border-left-color:#EF4444;">❌ Ошибка: ${escapeHtml(err.message)}</div>`;
+            }
+        });
+
+        document.getElementById('confirmAnalogFormBtn').addEventListener('click', async () => {
+            const select = document.getElementById('analogFormSelect');
+            const idx = select.value;
+            if (idx === '' || !lastFormsDosages[idx]) {
+                alert('Выберите форму и дозировку');
+                return;
+            }
+            const selected = lastFormsDosages[idx];
+            const resultsDiv = document.getElementById('analogResults');
+            resultsDiv.innerHTML = '<div class="ai-recommendation">⏳ Поиск аналогов...</div>';
+            try {
+                const response = await fetch('/api/analogs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: lastAnalogQuery,
+                        form: selected.form,
+                        dosage: selected.dosage
+                    })
+                });
+                if (!response.ok) throw new Error('Ошибка сервера');
+                const data = await response.json();
+                if (data.status === 'ok') {
+                    displayAnalogResults(data.analogs);
+                } else if (data.status === 'no_analogs') {
+                    resultsDiv.innerHTML = '<div class="info-card">📭 Аналоги не найдены.</div>';
+                } else {
+                    resultsDiv.innerHTML = `<div class="info-card" style="border-left-color:#EF4444;">❌ ${escapeHtml(data.message || 'Ошибка')}</div>`;
+                }
+            } catch (err) {
+                resultsDiv.innerHTML = `<div class="info-card" style="border-left-color:#EF4444;">❌ Ошибка: ${escapeHtml(err.message)}</div>`;
+            }
+        });
+
+        function displayAnalogResults(analogs) {
+            if (!analogs.length) {
+                document.getElementById('analogResults').innerHTML = '<div class="info-card">📭 Аналоги не найдены.</div>';
+                return;
+            }
+            let html = `<div class="ai-recommendation"><strong>🔍 Найдено аналогов: ${analogs.length}</strong><br><br>`;
+            analogs.forEach((a, i) => {
+                html += `
+                    <div style="border-bottom: 1px solid var(--gray-border); padding: 12px 0;">
+                        <div><strong>${i+1}. ${escapeHtml(a.trade_name)}</strong></div>
+                        <div>МНН: ${escapeHtml(a.mnn)}</div>
+                        <div>Форма: ${escapeHtml(a.dosage_form)} | Дозировка: ${escapeHtml(a.dosage)}</div>
+                        <div>Рег. номер: ${escapeHtml(a.reg_number)} | Владелец: ${escapeHtml(a.owner)}</div>
+                        <div style="font-size: 12px; color: var(--text-light);">Узел СМНН: ${escapeHtml(a.smnn_code)}</div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            document.getElementById('analogResults').innerHTML = html;
+        }
+
+        // --------------------------------------------------------------
+        // RAG-ассистент (AI-подсказки)
+        // --------------------------------------------------------------
+        document.getElementById('askRagBtn').addEventListener('click', async () => {
+            const question = document.getElementById('ragQuestion').value.trim();
+            const ageGroup = document.getElementById('ragAgeGroup').value;
+            const answerDiv = document.getElementById('ragAnswer');
+            if (!question) {
+                answerDiv.innerHTML = '<div class="info-card" style="border-left-color: #EF4444;">❌ Введите вопрос.</div>';
+                return;
+            }
+            answerDiv.innerHTML = '<div class="ai-recommendation">⏳ Поиск в клинических рекомендациях...</div>';
+            try {
+                const response = await fetch('/api/rag', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question, age_group: ageGroup })
+                });
+                if (!response.ok) throw new Error('Ошибка сервера');
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+                answerDiv.innerHTML = `<div class="ai-recommendation">${escapeHtml(data.answer).replace(/\n/g, '<br>')}</div>`;
+            } catch (err) {
+                answerDiv.innerHTML = `<div class="info-card" style="border-left-color:#EF4444;">❌ Ошибка: ${escapeHtml(err.message)}</div>`;
+            }
+        });
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        careLevelSelect.addEventListener('change', () => { if (isDiagTabActive()) loadTreatmentPlan(); });
+        patientGroupSelect.addEventListener('change', () => { if (isDiagTabActive()) loadTreatmentPlan(); });
+
+        // --------------------------------------------------------------
+        // Инициализация
+        // --------------------------------------------------------------
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadMkbList();
+            initDiagnoses();
+            loadTreatmentPlan();
+        });
+    </script>
+</body>
+</html>
