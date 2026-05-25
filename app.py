@@ -344,13 +344,13 @@ def ask_patient(query: str, age_group: str = "Взрослые") -> str:
         return f"В действующих КР для '{age_group}' информация не найдена.{DISCLAIMER}"
     return rag_chain.invoke({"docs": docs, "question": query})
 
-# Инициализация RAG (если есть файлы)
+# Инициализация RAG
 try:
     init_rag()
 except Exception as e:
     print(f"RAG не инициализирован: {e}")
 
-# Поиск аналогов лекарств (EsklpAnalogFinder)
+# Поиск аналогов лекарств
 PARQUET_FILE = "esklp_merged2.parquet"
 analog_finder = None
 try:
