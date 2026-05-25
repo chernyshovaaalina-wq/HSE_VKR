@@ -12,7 +12,7 @@ from sklearn.metrics import (accuracy_score, precision_score, recall_score, f1_s
 from sklearn.calibration import calibration_curve
 import joblib
 
-# Попробуем импортировать top_k_accuracy_score (доступна с версии 0.24)
+# Попробуем импортировать top_k_accuracy_score
 try:
     from sklearn.metrics import top_k_accuracy_score
 
@@ -21,9 +21,7 @@ except ImportError:
     TOP_K_AVAILABLE = False
     print("Предупреждение: top_k_accuracy_score не доступна (обновите scikit-learn).")
 
-# ============================
-# 1. Загрузка и предобработка данных
-# ============================
+# Загрузка и предобработка данных
 df = pd.read_csv('intestinal_infections_treatment_dataset.csv')
 
 target_cols = ['t_hospitalization', 't_iv_fluids', 't_oral_rehydration',
@@ -43,7 +41,6 @@ for col in X.columns:
     else:
         X[col] = X[col].fillna(X[col].median())
 
-# Категориальные признаки -> числа
 cat_cols = X.select_dtypes(include=['object']).columns.tolist()
 le_dict = {}
 for col in cat_cols:
@@ -51,7 +48,6 @@ for col in cat_cols:
     X[col] = le.fit_transform(X[col])
     le_dict[col] = le
 
-# Числовые признаки -> масштабирование
 num_cols = X.select_dtypes(include=[np.number]).columns.tolist()
 scaler = StandardScaler()
 X[num_cols] = scaler.fit_transform(X[num_cols])
@@ -59,15 +55,11 @@ X[num_cols] = scaler.fit_transform(X[num_cols])
 # Разделение на train/test
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y.iloc[:, 0])
 
-# ============================
-# 2. Модель лечения (multi‑output)
-# ============================
+# Модель лечения (multi‑output)
 model = MultiOutputClassifier(RandomForestClassifier(n_estimators=100, random_state=42))
 model.fit(X_train, y_train)
 
-# ============================
-# 3. Модель для предсказания возбудителя
-# ============================
+# Модель для предсказания возбудителя
 pathogen_encoder = LabelEncoder()
 y_pathogen = pathogen_encoder.fit_transform(df['stool_pathogen'])
 
@@ -78,18 +70,16 @@ _, _, y_pathogen_train, y_pathogen_test = train_test_split(
 pathogen_model = RandomForestClassifier(random_state=42)
 pathogen_model.fit(X_train, y_pathogen_train)
 
-# ============================
-# 4. Оценка качества моделей
-# ============================
+# Оценка качества моделей
 y_pred = model.predict(X_test)
-y_pred_proba = model.predict_proba(X_test)  # список из 6 массивов (n_samples, 2)
+y_pred_proba = model.predict_proba(X_test)
 
 target_names = ['hospitalization', 'iv_fluids', 'oral_rehydration',
                 'antibiotics', 'probiotics', 'antidiarrheals']
 
 metrics_results = {}
 
-print("=== МЕТРИКИ ДЛЯ КАЖДОГО ИСХОДА ===\n")
+print("Метрики для каждого исхода\n")
 for i, name in enumerate(target_names):
     y_true = y_test.iloc[:, i].values
     y_pred_class = y_pred[:, i]
@@ -121,8 +111,8 @@ for i, name in enumerate(target_names):
     print(f"  Matthews CC: {mcc:.4f}")
     print(f"  ROC-AUC: {auc:.4f}\n")
 
-# Усреднённые метрики (макро)
-print("=== УСРЕДНЁННЫЕ МЕТРИКИ (MACRO) ===\n")
+# Усреднённые метрики
+print("Усредненные метрики:\n")
 macro_acc = np.mean([metrics_results[t]['accuracy'] for t in target_names])
 macro_prec = np.mean([metrics_results[t]['precision'] for t in target_names])
 macro_rec = np.mean([metrics_results[t]['recall'] for t in target_names])
@@ -143,11 +133,11 @@ print(f"Macro ROC-AUC: {macro_auc:.4f}\n")
 y_path_true = y_pathogen_test
 y_path_pred = pathogen_model.predict(X_test)
 
-print("=== КЛАССИФИКАЦИЯ ВОЗБУДИТЕЛЯ ===\n")
+print("Классификация возбудителя\n")
 print(classification_report(y_path_true, y_path_pred,
                             target_names=pathogen_encoder.classes_, zero_division=0))
 
-# Top-3 accuracy для возбудителя (если доступно)
+# Top-3 accuracy для возбудителя
 if TOP_K_AVAILABLE:
     try:
         y_path_proba = pathogen_model.predict_proba(X_test)
@@ -176,9 +166,7 @@ plt.savefig('calibration_curve.png', dpi=150)
 plt.close()
 print("Калибровочная кривая сохранена как calibration_curve.png\n")
 
-# ============================
-# 5. Сохраняем все компоненты модели
-# ============================
+# Сохраняем все компоненты модели
 joblib.dump(model, 'treatment_model.pkl')
 joblib.dump(scaler, 'scaler.pkl')
 joblib.dump(le_dict, 'label_encoders.pkl')
@@ -191,5 +179,3 @@ joblib.dump(pathogen_encoder, 'pathogen_encoder.pkl')
 # Сохраняем метрики в JSON
 with open('model_metrics.json', 'w', encoding='utf-8') as f:
     json.dump(metrics_results, f, ensure_ascii=False, indent=2)
-
-print("✅ Все файлы модели и метрики успешно сохранены!")
